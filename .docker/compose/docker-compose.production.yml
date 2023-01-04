@@ -1,0 +1,99 @@
+version: "3.7"
+
+networks:
+  proxy:
+    driver: ${NETWORKS_DRIVER?}
+    external: ${NETWORKS_EXTERNAL?}
+
+services:
+  php-fpm:
+    environment:
+      - PHP_IDE_CONFIG=${PHP_IDE_CONFIG?}
+    # cap_add and security_opt are required to enable strace
+    # @see https://stackoverflow.com/a/46676868
+    cap_add:
+      - "SYS_PTRACE"
+    security_opt:
+      - "seccomp=unconfined"
+    volumes:
+      - ${APP_CODE_PATH_HOST?}:${APP_CODE_PATH_CONTAINER?}
+      - ../../.logs/app:/var/log/app
+      - ../../.logs/php-fpm:/var/log/php-fpm
+    networks:
+      - proxy
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  php-worker:
+    environment:
+      - PHP_IDE_CONFIG=${PHP_IDE_CONFIG?}
+    volumes:
+      - ${APP_CODE_PATH_HOST?}:${APP_CODE_PATH_CONTAINER?}
+      - ../../.logs/app:/var/log/app
+      - ../../.logs/supervisor:/var/log/supervisor
+    # cap_add and security_opt are required to enable strace
+    # @see https://stackoverflow.com/a/46676868
+    cap_add:
+      - "SYS_PTRACE"
+    security_opt:
+      - "seccomp=unconfined"
+    networks:
+      - proxy
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  nginx:
+    volumes:
+      - ${APP_CODE_PATH_HOST?}:${APP_CODE_PATH_CONTAINER?}
+      - ../../.logs/nginx:/var/log/nginx
+    ports:
+      - "${NGINX_HOST_HTTP_PORT:-80}:80"
+      - "${NGINX_HOST_HTTPS_PORT:-443}:443"
+    networks:
+      proxy:
+        aliases:
+          - ${APP_HOST?}
+    depends_on:
+      - php-fpm
+    # labels:
+    #   - traefik.enable=${TRAEFIK_ENABLE}
+    #   - traefik.http.routers.app.entrypoints=${TRAEFIK_ENTRYPOINT}
+    #   - traefik.http.routers.app.rule=Host(`${TRAEFIK_DOMAIN_NAME}`)
+
+  application:
+    image: ${DOCKER_REGISTRY?}/${DOCKER_NAMESPACE?}/application-${ENV?}:${TAG?}
+    build:
+      context: ../
+      dockerfile: ./images/php/application/Dockerfile
+      args:
+        - BASE_IMAGE=${DOCKER_REGISTRY?}/${DOCKER_NAMESPACE?}/php-base-${ENV?}:${TAG?}
+        - APP_SSH_PASSWORD=${APP_SSH_PASSWORD?}
+        - ENV=${ENV?}
+        - TIMEZONE=${TIMEZONE?}
+    environment:
+      - PHP_IDE_CONFIG=${PHP_IDE_CONFIG?}
+    # cap_add and security_opt are required to enable strace
+    # @see https://stackoverflow.com/a/46676868
+    cap_add:
+      - "SYS_PTRACE"
+    security_opt:
+      - "seccomp=unconfined"
+    volumes:
+      - ${APP_CODE_PATH_HOST?}:${APP_CODE_PATH_CONTAINER?}
+      - ../../.logs/app:/var/log/app
+    ports:
+      - "${APPLICATION_SSH_HOST_PORT:-2222}:22"
+    tty: true
+    networks:
+      - proxy
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  logger:
+    volumes:
+      - ../../.logs/nginx:/var/log/nginx
+      - ../../.logs/app:/var/log/app
+      - ../../.logs/supervisor:/var/log/supervisor
+      - ../../.logs/php-fpm:/var/log/php-fpm
+    networks:
+      - proxy

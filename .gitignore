@@ -1,0 +1,32 @@
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/.vscode
+*.log
+*.DS_Store
+.DS_Store
+*/.DS_Store
+
+# Ignore volume for docker data
+**/.data/mysql/**
+!**/.data/mysql/.keepfile
+**/.data/redis/**
+!**/.data/redis/.keepfile
+**/.data/letsencrypt/**
+!**/.data/letsencrypt/.keepfile
+
+# Ignore volume for docker logs
+**/.logs/app/**
+!**/.logs/app/.keepfile
+**/.logs/php-fpm/**
+!**/.logs/php-fpm/.keepfile
+**/.logs/supervisor/**
+!**/.logs/supervisor/.keepfile
+**/.logs/nginx/**
+!**/.logs/nginx/.keepfile
