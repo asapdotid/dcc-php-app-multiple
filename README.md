@@ -39,6 +39,9 @@ Setup for create docker images:
 | MySQL                     | 8       | Oraclelinux:8-slim | yes         | no      | no         |
 | Redis                     | 7       | Alpine 16          | yes         | no      | no         |
 
+Base project from [Docker PHP Tutorial](https://github.com/paslandau/docker-php-tutorial)
+Thank's to [Pascal Landau](https://github.com/paslandau) 👍
+
 ### Makefile Help command
 
 ```bash
