@@ -69,6 +69,7 @@ TIMEZONE=Asia/Jakarta      # Timezone
 APP_USER_NAME=application  # User
 APP_USER_ID=1000           # User ID
 APP_GROUP_ID=1000          # Group ID
+APP_PROJECT=asaplabs       # Docker project name
 ```
 
 ## Setup Application base of Environment
